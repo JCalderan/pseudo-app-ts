@@ -4,7 +4,7 @@ import { Pseudo } from './pseudo';
 
 describe('Pseudo', () => {
   describe('Pseudo.of', () => {
-    it('return a succeeded GuardedValue<Pseudo> from a valid input string', () => {
+    it('should return a succeeded GuardedValue<Pseudo> from a valid input string', () => {
       // Given
       const aStringValue = 'ABC';
 
@@ -20,7 +20,7 @@ describe('Pseudo', () => {
   });
 
   describe('Pseudo.of', () => {
-    it('return a failed GuardedValue<Pseudo> from an invalid input string', () => {
+    it('should return a failed GuardedValue<Pseudo> from an invalid input string', () => {
       // Given
       const aStringValue = 'ABCE';
 
