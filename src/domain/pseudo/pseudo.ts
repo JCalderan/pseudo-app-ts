@@ -1,7 +1,7 @@
 import { string } from 'yargs';
 import {Guard, Validator, GuardedValue} from '../utils/guard';
 
-const PSEUDO_MATCH_REGEXP: RegExp = /^[A-Z]{3}$/g;
+const PSEUDO_MATCH_REGEXP: RegExp = /^[A-Z]{3}$/;
 
 export class Pseudo {
     private readonly value: string;

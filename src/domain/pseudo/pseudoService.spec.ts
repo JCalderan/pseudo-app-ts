@@ -51,12 +51,10 @@ describe('PseudoService', () => {
         const pseudoService: PseudoService = new PseudoService(aPseudoAdapterImpl);
 
         // When
-        const aSavedPseudo: GuardedValue<Pseudo> = pseudoService.registerPseudo(aStringValue);
-
+        const pseudoRegistration = () => pseudoService.registerPseudo(aStringValue);
+        
         // Then
-        expect(aSavedPseudo.succeeded()).toBe(false);
-        expect(aSavedPseudo.getValue().getValue()).toBe(aStringValue);
-        expect(aSavedPseudo.getReason()).toBe("");
+        expect(pseudoRegistration).toThrow(Error);
       });
   });
   
