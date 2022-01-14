@@ -1,23 +1,27 @@
-import { Pseudo } from "./pseudo.model";
+import { Pseudo } from './pseudo.model';
 
 export interface Transaction {
-    startTransaction(): Promise<StartedTransaction>
+  startTransaction(): Promise<StartedTransaction>;
 }
 
 export interface StartedTransaction {
-    commitTransaction(): Promise<FinishedTransaction | FailedTransaction>;
+  commitTransaction(): Promise<FinishedTransaction | FailedTransaction>;
 }
 
 export interface FailedTransaction {
-    rollbackTransaction(): Promise<FinishedTransaction> 
+  rollbackTransaction(): Promise<FinishedTransaction>;
 }
 
 export interface FinishedTransaction {
-    closeTransaction()
+  closeTransaction();
 }
 
-export interface PseudoAdapter extends Transaction, StartedTransaction, FailedTransaction, FinishedTransaction {
-    find(pseudo: Pseudo): Promise<Pseudo | undefined>
-    findLastRegisteredPseudo(): Promise<Pseudo>
-    save(pseudo: Pseudo): Promise<Pseudo>;
+export interface PseudoAdapter
+  extends Transaction,
+    StartedTransaction,
+    FailedTransaction,
+    FinishedTransaction {
+  find(pseudo: Pseudo): Promise<Pseudo | undefined>;
+  findLastRegisteredPseudo(): Promise<Pseudo>;
+  save(pseudo: Pseudo): Promise<Pseudo>;
 }

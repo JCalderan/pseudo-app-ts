@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryColumn } from 'typeorm';
-import {Matches} from 'class-validator';
+import { Matches } from 'class-validator';
 import { PSEUDO_MATCH_REGEXP } from 'src/pseudo/domain/pseudo.model';
 
 /*
@@ -8,10 +8,10 @@ import { PSEUDO_MATCH_REGEXP } from 'src/pseudo/domain/pseudo.model';
     Ie: this class is tightly coupled to TypeORM and PostgreSQL
 */
 @Entity({
-    name: 'pseudo'
+  name: 'pseudo',
 })
 export class PseudoEntity {
-    @PrimaryColumn()
-    @Matches(PSEUDO_MATCH_REGEXP)
-    name: string;
+  @PrimaryColumn()
+  @Matches(PSEUDO_MATCH_REGEXP)
+  name: string;
 }
