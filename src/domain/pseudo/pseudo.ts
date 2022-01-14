@@ -1,31 +1,26 @@
-import { string } from 'yargs';
-import {Guard, Validator, GuardedValue} from '../utils/guard';
+import {Matches, validateSync, ValidationError} from 'class-validator';
 
-const PSEUDO_MATCH_REGEXP: RegExp = /^[A-Z]{3}$/;
+export const PSEUDO_MATCH_REGEXP: RegExp = /^[A-Z]{3}$/;
 
 export class Pseudo {
-    private readonly value: string;
-    private static readonly validators: Array<Validator<string>> = [
-        // adding a new predicate based rule is just a "push" to this array
-        new Validator(val => PSEUDO_MATCH_REGEXP.test(val),`Pseudo should contains only 3 upper Characters (${PSEUDO_MATCH_REGEXP})`)
-    ];
+    // Some will argue the domain shouldn't depends on external libs
+    // I decided to do so as it simplifies the implementation (and maintenance as well)
+    @Matches(PSEUDO_MATCH_REGEXP, {message: `Pseudo should contains only 3 upper Characters (${PSEUDO_MATCH_REGEXP})`})
+    private readonly name: string;
 
-    public static of(value: string) : GuardedValue<Pseudo> {
-        const guard = new Guard(value);
-        const validatedValue = this.validators
-            .reduce((prev: Guard<string>, curr: Validator<string>) => prev.verifyThat(curr), guard)
-            .validate();
-
-        return validatedValue.succeeded() ? 
-            GuardedValue.validated(new Pseudo(value)) :
-            GuardedValue.failed(new Pseudo(value), validatedValue.getReason());
+    // use a factory method to avoid throwing in constructor
+    public static of(value: string): Pseudo {
+        const pseudo: Pseudo = new Pseudo(value);
+        const errors: ValidationError[] = validateSync(pseudo)
+        if (errors.length == 0) return pseudo;
+        throw new Error(`Invalid Pseudo: ${errors[0].constraints.matches}`);
     }
 
-    private constructor(value: string) {
-        this.value = value;
+    private constructor(name: string) {
+        this.name = name;
     }
 
-    public getValue(): string {
-        return this.value;
+    getName(): string {
+        return this.name;
     }
 }
