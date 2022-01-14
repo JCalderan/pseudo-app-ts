@@ -1,13 +1,20 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { QueryRunner, Repository } from 'typeorm';
+import { TypeORMQueryRunnerFactory } from '../postgres/postgres.connectionFactory';
 import { Pseudo } from './pseudo.model';
-import { PseudoAdapter } from './pseudoAdapter';
 
 @Injectable()
 export class PseudoService {
-  private readonly pseudoAdapter: PseudoAdapter;
+  private pseudoRepository: Repository<Pseudo>;
+  private queryRunnerFactory: TypeORMQueryRunnerFactory;
 
-  constructor(@Inject('PSEUDO_ADAPTER') pseudoAdapter: PseudoAdapter) {
-    this.pseudoAdapter = pseudoAdapter;
+  constructor(
+    @InjectRepository(Pseudo) pseudoRepository: Repository<Pseudo>,
+    queryRunnerFactory: TypeORMQueryRunnerFactory,
+  ) {
+    this.pseudoRepository = pseudoRepository;
+    this.queryRunnerFactory = queryRunnerFactory;
   }
 
   private computeNextAvailablePseudo(previousValue: string): string {
@@ -39,27 +46,51 @@ export class PseudoService {
 
   async registerPseudo(stringValue: string): Promise<Pseudo> {
     let pseudo: Pseudo;
+    const queryRunner: QueryRunner = this.queryRunnerFactory.getQueryRunner();
     try {
-      pseudo = Pseudo.of(stringValue);
-      await this.pseudoAdapter.startTransaction();
-      const existingPseudo: Pseudo = await this.pseudoAdapter.find(pseudo);
+      pseudo = this.pseudoRepository.create({ name: stringValue });
+      await queryRunner.startTransaction();
+      const existingPseudo: Pseudo = await this.find(pseudo);
       if (existingPseudo) {
         const lastRegisteredPseudo: Pseudo =
-          await this.pseudoAdapter.findLastRegisteredPseudo();
+          await this.findLastRegisteredPseudo();
         // only one computation here, as the transaction should ensure we don't get stale reads from db
         const nextAvailablePseudoValue: string =
           this.computeNextAvailablePseudo(lastRegisteredPseudo.getName());
         pseudo = Pseudo.of(nextAvailablePseudoValue);
       }
-      const savedPseudo: Pseudo = await this.pseudoAdapter.save(pseudo);
-      await this.pseudoAdapter.commitTransaction();
+      console.log('saving pseudo');
+      pseudo = await this.pseudoRepository.save(pseudo);
+      console.log(pseudo);
+      await queryRunner.commitTransaction();
     } catch (error) {
-      await this.pseudoAdapter.rollbackTransaction();
+      await queryRunner.rollbackTransaction();
       return Promise.reject(error);
     } finally {
-      await this.pseudoAdapter.closeTransaction();
+      await queryRunner.release();
     }
-
     return pseudo;
+  }
+
+  async find(pseudo: Pseudo): Promise<Pseudo> {
+    try {
+      return await this.pseudoRepository.findOne(pseudo.getName());
+    } catch (error) {
+      // TODO: use logger
+      return Promise.reject(error);
+    }
+  }
+
+  async findLastRegisteredPseudo(): Promise<Pseudo> {
+    try {
+      const results: Pseudo[] = await this.pseudoRepository.find({
+        order: { name: 'DESC' },
+        take: 1,
+      });
+      return results.length ? results[0] : undefined;
+    } catch (error) {
+      // TODO: use logger
+      return Promise.reject(error);
+    }
   }
 }

@@ -1,14 +1,15 @@
 import { Matches, validateSync, ValidationError } from 'class-validator';
+import { Entity, PrimaryColumn } from 'typeorm';
 
 export const PSEUDO_MATCH_REGEXP = /^[A-Z]{3}$/;
 
+@Entity('pseudonymes.pseudo')
 export class Pseudo {
-  // Some will argue the domain shouldn't depends on external libs
-  // I decided to do so as it simplifies the implementation (and maintenance as well)
+  @PrimaryColumn()
   @Matches(PSEUDO_MATCH_REGEXP, {
     message: `Pseudo should contains only 3 upper Characters (${PSEUDO_MATCH_REGEXP})`,
   })
-  private readonly name: string;
+  name: string;
 
   // use a factory method to avoid throwing in constructor
   public static of(value: string): Pseudo {
