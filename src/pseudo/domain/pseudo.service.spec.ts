@@ -1,6 +1,6 @@
-import { PseudoService } from './pseudoService';
-import { Pseudo, PSEUDO_MATCH_REGEXP } from './pseudo';
-import { PseudoAdapter } from 'src/domain/pseudo/pseudoAdapter';
+import { PseudoService } from './pseudo.service';
+import { Pseudo, PSEUDO_MATCH_REGEXP } from './pseudo.model';
+import { PseudoAdapter } from './pseudoAdapter';
 
 const mockPseudoAdatper = (
     saveFn: (pseudo: Pseudo) => Promise<Pseudo>,

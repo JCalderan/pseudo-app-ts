@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryColumn } from 'typeorm';
 import {Matches} from 'class-validator';
-import { PSEUDO_MATCH_REGEXP } from 'src/domain/pseudo/pseudo';
+import { PSEUDO_MATCH_REGEXP } from 'src/pseudo/domain/pseudo.model';
 
 /*
     Debatable: Entities being tightly coupled to the serialization process, 
@@ -8,7 +8,7 @@ import { PSEUDO_MATCH_REGEXP } from 'src/domain/pseudo/pseudo';
     Ie: this class is tightly coupled to TypeORM and PostgreSQL
 */
 @Entity({
-    name: 'pseudonymes'
+    name: 'pseudo'
 })
 export class PseudoEntity {
     @PrimaryColumn()

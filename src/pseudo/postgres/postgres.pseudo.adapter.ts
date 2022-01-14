@@ -1,11 +1,10 @@
-import { Injectable, NotImplementedException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Pseudo } from "src/domain/pseudo/pseudo";
-import { FailedTransaction, FinishedTransaction, PseudoAdapter, StartedTransaction } from "src/domain/pseudo/pseudoAdapter";
-import { QueryRunner, Repository } from "typeorm";
-import { TypeORMQueryRunnerFactory } from "./postgreSQLConnectionFactory";
-import { PseudoEntity } from "./pseudoEntity";
-
+import { Repository, QueryRunner } from "typeorm";
+import { Pseudo } from "src/pseudo/domain/pseudo.model";
+import { PseudoAdapter, StartedTransaction, FailedTransaction, FinishedTransaction } from "src/pseudo/domain/pseudoAdapter";
+import { TypeORMQueryRunnerFactory } from "./postgres.connectionFactory";
+import { PseudoEntity } from "./postgres.pseudo.entity";
 
 @Injectable()
 export class PostgreSQLPseudoAdapter implements PseudoAdapter {

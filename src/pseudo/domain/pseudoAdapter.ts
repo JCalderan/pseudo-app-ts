@@ -1,4 +1,4 @@
-import { Pseudo } from "./pseudo";
+import { Pseudo } from "./pseudo.model";
 
 export interface Transaction {
     startTransaction(): Promise<StartedTransaction>

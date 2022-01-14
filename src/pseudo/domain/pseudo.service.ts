@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { Pseudo } from './pseudo';
+import { Inject, Injectable } from '@nestjs/common';
+import { Pseudo } from './pseudo.model';
 import { PseudoAdapter } from './pseudoAdapter';
 
 @Injectable()
 export class PseudoService {
     private readonly pseudoAdapter: PseudoAdapter;
     
-    constructor(pseudoAdapter: PseudoAdapter) {
+    constructor(@Inject('PSEUDO_ADAPTER') pseudoAdapter: PseudoAdapter) {
         this.pseudoAdapter = pseudoAdapter;
     }
     

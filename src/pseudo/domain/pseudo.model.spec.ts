@@ -1,4 +1,4 @@
-import { Pseudo } from './pseudo';
+import { Pseudo } from './pseudo.model';
 
 describe('Pseudo', () => {
   describe('Pseudo.of', () => {

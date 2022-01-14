@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { Connection, QueryRunner } from "typeorm";
-import { PostgreSQLConfiguration } from "./postgreSQLConfiguration";
 
 @Injectable()
 export class TypeORMQueryRunnerFactory {
