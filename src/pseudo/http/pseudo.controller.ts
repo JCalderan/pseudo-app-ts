@@ -1,7 +1,9 @@
 import { Body, Controller, Post } from '@nestjs/common';
+import { InvalidPseudoError, NoPseudoAvailableError } from '../domain/pseudo.exception';
 import { Pseudo } from '../domain/pseudo.model';
 import { PseudoService } from '../domain/pseudo.service';
 import { CreatedPseudoDTO, CreatePseudoDTO } from './pseudo.dto';
+import { InvalidPseudoHTTPError, NoPseudoAvailableHTTPError } from './pseudo.exception';
 
 @Controller('pseudo')
 export class PseudoController {
@@ -11,9 +13,17 @@ export class PseudoController {
   async signup(
     @Body() createPseudoDTO: CreatePseudoDTO,
   ): Promise<CreatedPseudoDTO> {
-    const pseudo: Pseudo = await this.pseudoService.registerPseudo(
-      createPseudoDTO.name,
-    );
-    return new CreatedPseudoDTO(pseudo.name);
+    try {
+      const pseudo: Pseudo = await this.pseudoService.registerPseudo(
+        createPseudoDTO.name,
+      );
+      return new CreatedPseudoDTO(pseudo.name);
+    } catch (error) {
+      if (error instanceof InvalidPseudoError)
+        throw new InvalidPseudoHTTPError(error);
+      if (error instanceof NoPseudoAvailableError)
+        throw new NoPseudoAvailableHTTPError(error);
+      throw error;
+    }
   }
 }

@@ -38,11 +38,31 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('POST /pseudo', () => {
-    return request(app.getHttpServer())
-      .post('/pseudo')
-      .send({ name: 'AAA' })
-      .expect(201)
-      .expect({ name: 'AAA' });
+  afterEach(async () => {
+    await app.close();
+  });
+
+  describe('Pseudo', () => {
+    describe('POST /pseudo', () => {
+      it('should return the name of a newly created pseudo', () => {
+        return request(app.getHttpServer())
+          .post('/pseudo')
+          .send({ name: 'AAA' })
+          .expect(201)
+          .expect({ name: 'AAA' });
+      });
+
+      it('should return an Error message for an invalid input name', () => {
+        return request(app.getHttpServer())
+          .post('/pseudo')
+          .send({ name: 'ABCDE' })
+          .expect(400)
+          .expect({
+            statusCode: 400,
+            message:
+              "Invalid pseudo 'ABCDE' : Pseudo should contains only 3 upper Characters (/^[A-Z]{3}$/)",
+          });
+      });
+    });
   });
 });
