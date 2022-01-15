@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryRunner, Repository } from 'typeorm';
 import { TypeORMQueryRunnerFactory } from '../postgres/postgres.connectionFactory';
+import { NoPseudoAvailableError } from './pseudo.exception';
 import { Pseudo } from './pseudo.model';
 import { computeNextPseudo, computePreviousPseudo } from './pseudo.utils';
 
@@ -26,10 +27,7 @@ export class PseudoService {
       const existingPseudo: Pseudo = await this.findByName(stringValue);
       if (existingPseudo !== undefined) {
         pseudo = await this.findAvailablePseudo();
-        if (pseudo === undefined)
-          throw new Error(
-            `Unable to create Pseudo ${stringValue}: pseudo already exists and no other pseudo is available`,
-          );
+        if (pseudo === undefined) throw new NoPseudoAvailableError(stringValue);
         await this.updateAdjacentPseudo(pseudo);
       } else {
         pseudo = Pseudo.of(

@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { TypeORMQueryRunnerFactory } from '../postgres/postgres.connectionFactory';
+import { NoPseudoAvailableError } from './pseudo.exception';
 
 describe('PseudoService', () => {
   // huge boilerplate to be inject and infer correct types
@@ -175,9 +176,7 @@ describe('PseudoService', () => {
 
         // Then
         expect(pseudoRegistration).rejects.toEqual(
-          new Error(
-            'Unable to create Pseudo ANY: pseudo already exists and no other pseudo is available',
-          ),
+          new NoPseudoAvailableError('ANY'),
         );
       });
     });

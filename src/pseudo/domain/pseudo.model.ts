@@ -1,5 +1,6 @@
 import { Matches, validateSync, ValidationError } from 'class-validator';
 import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { InvalidPseudoError } from './pseudo.exception';
 
 export const PSEUDO_MATCH_REGEXP = /^[A-Z]{3}$/;
 
@@ -38,7 +39,7 @@ export class Pseudo {
     const pseudo: Pseudo = new Pseudo(value, previous_value, next_value);
     const errors: ValidationError[] = validateSync(pseudo);
     if (errors.length == 0) return pseudo;
-    throw new Error(`Invalid Pseudo: ${errors[0].constraints.matches}`);
+    throw new InvalidPseudoError(value, errors[0].constraints.matches);
   }
 
   private constructor(

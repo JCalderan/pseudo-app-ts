@@ -1,3 +1,4 @@
+import { InvalidPseudoError } from './pseudo.exception';
 import { Pseudo } from './pseudo.model';
 
 describe('Pseudo', () => {
@@ -40,6 +41,6 @@ describe('Pseudo', () => {
     const anInvalidPseudoCreation = () => Pseudo.of('AAA', 'ABC', 'AABC');
 
     // Then
-    expect(anInvalidPseudoCreation).toThrow(Error);
+    expect(anInvalidPseudoCreation).toThrow(InvalidPseudoError);
   });
 });
