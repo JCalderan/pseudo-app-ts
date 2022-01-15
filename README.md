@@ -76,6 +76,7 @@ Nest is [MIT licensed](LICENSE).
 ### TODOs:
 The following topics need to be implemented or researched:
 - use a logger
+- make the application port configurable
 - enhance coverage on non-domain modules
 - build the project docker image with GithubActions
 - launch e2e tests with GithubActions

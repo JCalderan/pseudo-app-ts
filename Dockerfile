@@ -15,6 +15,8 @@ FROM node:17.3.1-slim
 COPY --from=builder /app/dist /app
 COPY --from=builder /app/node_modules /app/node_modules
 
+EXPOSE 3000
+
 ENTRYPOINT ["node"]
 CMD ["/app/main.js"]
 
