@@ -24,17 +24,47 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+An application that insert 'Pseudonymes' (a combination of 3 upper case letters) in database.
+The application expose a signe endpoint (POST /pseudo) in order to create pseudo:
+- if the pseudo already exists, another 'available' pseudo is created and returned
+- if the pseudo already exists, and all other pseudonymes are already taken, an error is returned
+- if the pseudo is free, the pseudo is created and returned
 
-## Installation
+## Project structure
+The project structure is a simple layered architecture:
+- src: contains the source code
+- src/pseudo: feature module, contains everything about Pseudonymes
+- src/pseudo/domain: package containing business rules, and entities (entities and repositories should be moved to postgres package)
+- src/pseudo/http: package containing all HTTP related classes
+- src/pseudo/postgres: package containing all database specific classes
+- db: contains database initialization script (used by docker-compose)
+- test: contain e2e tests
+- dist: contains compiled source code
+- root directory: contains all project configuration files
+## Launch the application (Docker)
 
 ```bash
-$ npm install
+$ git clone git@github.com:JCalderan/pseudo-app-ts.git
+$ cd pseudo-app-ts
+$ docker-compose up -d # wait a few seconds for the application and the database to be up and running
+$ curl --request POST 'http://localhost:8080/pseudo' --header 'Content-Type: application/json' --data-raw '{"name": "AAA"}'
+```
+
+## Installation (Node v17.* and Docker)
+This will require Nodejs version 17 or higher.
+
+```bash
+$ corepack enable # https://yarnpkg.com/getting-started/install
+$ yarn install
 ```
 
 ## Running the app
 
 ```bash
+$ git clone git@github.com:JCalderan/pseudo-app-ts.git
+$ cd pseudo-app-ts
+$ docker-compose up -d db
+
 # development
 $ npm run start
 
@@ -58,6 +88,18 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+### TODOs:
+The following topics need to be implemented or researched:
+- use a logger
+- make the application port configurable
+- enhance coverage on non-domain modules
+- build the project docker image with GithubActions
+- launch e2e tests with GithubActions
+- produce coverage artifact with GithubActions
+- inject SQL fixtures in e2e tests before each use cases
+- reduce boilerplate code in unit tests
+- Refactor the application code with Hexagonal Architecture principles...might need to drop nestjs
+
 ## Support
 
 Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
@@ -71,16 +113,3 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](LICENSE).
-
-
-### TODOs:
-The following topics need to be implemented or researched:
-- use a logger
-- make the application port configurable
-- enhance coverage on non-domain modules
-- build the project docker image with GithubActions
-- launch e2e tests with GithubActions
-- produce coverage artifact with GithubActions
-- inject SQL fixtures in e2e tests before each use cases
-- reduce boilerplate code in unit tests
-- Refactor the application code with Hexagonal Architecture principles...might need to drop nestjs
