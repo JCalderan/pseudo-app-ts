@@ -25,9 +25,7 @@ export class PseudoService {
       await queryRunner.startTransaction();
       const existingPseudo: Pseudo = await this.findByName(stringValue);
       if (existingPseudo !== undefined) {
-        console.log(`Pseudo already exists: ${JSON.stringify(existingPseudo)}`);
         pseudo = await this.findAvailablePseudo();
-        console.log(`available pseudo found: ${JSON.stringify(pseudo)}`);
         if (pseudo === undefined)
           throw new Error(
             `Unable to create Pseudo ${stringValue}: pseudo already exists and no other pseudo is available`,
@@ -39,7 +37,6 @@ export class PseudoService {
           computePreviousPseudo(stringValue),
           computeNextPseudo(stringValue),
         );
-        console.log(`New pseudo: ${JSON.stringify(pseudo)}`);
       }
       pseudo = await this.pseudoRepository.save(pseudo);
       await queryRunner.commitTransaction();
@@ -87,13 +84,11 @@ export class PseudoService {
     if (previousPseudo) {
       previousPseudo.next_value_used = true;
       await this.pseudoRepository.save(previousPseudo);
-      console.log(`previous pseudo updated: ${JSON.stringify(previousPseudo)}`);
     }
     const nextPseudo: Pseudo = await this.findByName(pseudo.next_value);
     if (nextPseudo) {
       nextPseudo.previous_value_used = true;
       await this.pseudoRepository.save(nextPseudo);
-      console.log(`next pseudo updated: ${JSON.stringify(nextPseudo)}`);
     }
   }
 

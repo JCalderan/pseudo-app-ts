@@ -11,8 +11,6 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
   }
 
   createTypeOrmOptions(): TypeOrmModuleOptions {
-    console.log(this.configService);
-    console.log('db password: ' + this.configService.get('db_password'));
     return {
       type: 'postgres',
       autoLoadEntities: true,

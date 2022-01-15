@@ -6,7 +6,6 @@ describe('pseudo.utils module', () => {
       // Given
       const values: string[] = ['AAA', 'AAZ', 'AZZ', 'ZZZ'];
 
-
       // When
       const results: string[] = values.map((val) => computeNextPseudo(val));
 
