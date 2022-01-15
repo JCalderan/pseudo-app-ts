@@ -51,7 +51,7 @@ $ npm run start:prod
 # unit tests
 $ npm run test
 
-# e2e tests
+# e2e tests (need docker and docker-compose to be installed)
 $ npm run test:e2e
 
 # test coverage
@@ -76,6 +76,7 @@ Nest is [MIT licensed](LICENSE).
 ### TODOs:
 The following topics need to be implemented or researched:
 - use a logger
+- enhance coverage on non-domain modules
 - build the project docker image with GithubActions
 - launch e2e tests with GithubActions
 - produce coverage artifact with GithubActions
