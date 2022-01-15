@@ -71,3 +71,14 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](LICENSE).
+
+
+### TODOs:
+The following topics need to be implemented or researched:
+- use a logger
+- build the project docker image with GithubActions
+- launch e2e tests with GithubActions
+- produce coverage artifact with GithubActions
+- inject SQL fixtures in e2e tests before each use cases
+- reduce boilerplate code in unit tests
+- Refactor the application code with Hexagonal Architecture principles...might need to drop nestjs
