@@ -63,6 +63,18 @@ describe('AppController (e2e)', () => {
               "Invalid pseudo 'ABCDE' : Pseudo should contains only 3 upper Characters (/^[A-Z]{3}$/)",
           });
       });
+
+      it('should return an Error message for an invalid input schema', () => {
+        return request(app.getHttpServer())
+          .post('/pseudo')
+          .send({ nameee: 'ABC' })
+          .expect(400)
+          .expect({
+            statusCode: 400,
+            message: 'Validation failed',
+            error: 'Bad Request',
+          });
+      });
     });
   });
 });
