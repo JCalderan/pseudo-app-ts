@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { QueryRunner, Repository } from 'typeorm';
 import { TypeORMQueryRunnerFactory } from '../postgres/postgres.connectionFactory';
 import { Pseudo } from './pseudo.model';
+import { computeNextPseudo, computePreviousPseudo } from './pseudo.utils';
 
 @Injectable()
 export class PseudoService {
@@ -17,51 +18,30 @@ export class PseudoService {
     this.queryRunnerFactory = queryRunnerFactory;
   }
 
-  private computeNextAvailablePseudo(previousValue: string): string {
-    // the algorithm assumes values will be guessed incrementally from db, until "ZZZ" is found
-    if (previousValue == 'ZZZ') {
-      throw new Error('All possible values seems to be taken.');
-    }
-    const tokens = [...previousValue];
-    const toReplace: (string | number)[] = tokens
-      // reverse token order, as the algorithm will update the last one first (ie: AAA => AAB)
-      .reverse()
-      .map((token, idx) => [token, idx])
-      .find((tuple) => tuple[0] != 'Z');
-
-    // could use array.splice, but prefer to stay "immutable"
-    return (
-      tokens
-        // replace token with next letter
-        .map((token, idx) =>
-          idx == toReplace[1]
-            ? String.fromCharCode(token.charCodeAt(0) + 1)
-            : token,
-        )
-        // put back tokens in the right order
-        .reverse()
-        .join('')
-    );
-  }
-
   async registerPseudo(stringValue: string): Promise<Pseudo> {
     let pseudo: Pseudo;
     const queryRunner: QueryRunner = this.queryRunnerFactory.getQueryRunner();
     try {
       await queryRunner.startTransaction();
-      pseudo = Pseudo.of(stringValue);
-      const existingPseudo: Pseudo = await this.find(pseudo);
-      if (existingPseudo) {
-        const lastRegisteredPseudo: Pseudo =
-          await this.findLastRegisteredPseudo();
-        // only one computation here, as the transaction should ensure we don't get stale reads from db
-        const nextAvailablePseudoValue: string =
-          this.computeNextAvailablePseudo(lastRegisteredPseudo.getName());
-        pseudo = Pseudo.of(nextAvailablePseudoValue);
+      const existingPseudo: Pseudo = await this.findByName(stringValue);
+      if (existingPseudo !== undefined) {
+        console.log(`Pseudo already exists: ${JSON.stringify(existingPseudo)}`);
+        pseudo = await this.findAvailablePseudo();
+        console.log(`available pseudo found: ${JSON.stringify(pseudo)}`);
+        if (pseudo === undefined)
+          throw new Error(
+            `Unable to create Pseudo ${stringValue}: pseudo already exists and no other pseudo is available`,
+          );
+        await this.updateAdjacentPseudo(pseudo);
+      } else {
+        pseudo = Pseudo.of(
+          stringValue,
+          computePreviousPseudo(stringValue),
+          computeNextPseudo(stringValue),
+        );
+        console.log(`New pseudo: ${JSON.stringify(pseudo)}`);
       }
-      console.log('saving pseudo');
       pseudo = await this.pseudoRepository.save(pseudo);
-      console.log(pseudo);
       await queryRunner.commitTransaction();
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -72,22 +52,88 @@ export class PseudoService {
     return pseudo;
   }
 
-  async find(pseudo: Pseudo): Promise<Pseudo> {
+  private async findAvailablePseudo(): Promise<Pseudo> {
+    let availablePseudo: Pseudo;
+    const aPseudoWithPrevValueAvailable: Pseudo =
+      await this.findPseudoWithPreviousAvailable();
+    if (aPseudoWithPrevValueAvailable) {
+      const availablePseudoValue: string =
+        aPseudoWithPrevValueAvailable.previous_value;
+      availablePseudo = Pseudo.of(
+        availablePseudoValue,
+        computePreviousPseudo(availablePseudoValue),
+        aPseudoWithPrevValueAvailable.name,
+      );
+      availablePseudo.next_value_used = true;
+      return availablePseudo;
+    }
+    const aPseudoWithNextValueAvailable: Pseudo =
+      await this.findPseudoWithNextValueAvailable();
+    if (aPseudoWithNextValueAvailable) {
+      const availablePseudoValue: string =
+        aPseudoWithNextValueAvailable.next_value;
+      availablePseudo = Pseudo.of(
+        availablePseudoValue,
+        aPseudoWithNextValueAvailable.name,
+        computeNextPseudo(availablePseudoValue),
+      );
+      availablePseudo.previous_value_used = true;
+      return availablePseudo;
+    }
+  }
+
+  private async updateAdjacentPseudo(pseudo: Pseudo) {
+    const previousPseudo: Pseudo = await this.findByName(pseudo.previous_value);
+    if (previousPseudo) {
+      previousPseudo.next_value_used = true;
+      await this.pseudoRepository.save(previousPseudo);
+      console.log(`previous pseudo updated: ${JSON.stringify(previousPseudo)}`);
+    }
+    const nextPseudo: Pseudo = await this.findByName(pseudo.next_value);
+    if (nextPseudo) {
+      nextPseudo.previous_value_used = true;
+      await this.pseudoRepository.save(nextPseudo);
+      console.log(`next pseudo updated: ${JSON.stringify(nextPseudo)}`);
+    }
+  }
+
+  private async findByName(name: string): Promise<Pseudo> {
     try {
-      return await this.pseudoRepository.findOne(pseudo.getName());
+      return await this.pseudoRepository.findOne(name);
     } catch (error) {
       // TODO: use logger
       return Promise.reject(error);
     }
   }
 
-  async findLastRegisteredPseudo(): Promise<Pseudo> {
+  private async findPseudoWithNextValueAvailable(): Promise<Pseudo> {
     try {
-      const results: Pseudo[] = await this.pseudoRepository.find({
-        order: { name: 'DESC' },
-        take: 1,
-      });
-      return results.length ? results[0] : undefined;
+      const availablePseudoResults: Pseudo[] = await this.pseudoRepository.find(
+        {
+          where: [{ next_value_used: 0 }],
+          take: 1,
+        },
+      );
+      return availablePseudoResults.length
+        ? availablePseudoResults[0]
+        : undefined;
+    } catch (error) {
+      // TODO: use logger
+      return Promise.reject(error);
+    }
+  }
+
+  private async findPseudoWithPreviousAvailable(): Promise<Pseudo> {
+    try {
+      const availablePseudoResults: Pseudo[] = await this.pseudoRepository.find(
+        {
+          where: [{ previous_value_used: 0 }],
+          take: 1,
+        },
+      );
+      return availablePseudoResults.length
+        ? availablePseudoResults[0]
+        : undefined;
     } catch (error) {
       // TODO: use logger
       return Promise.reject(error);
