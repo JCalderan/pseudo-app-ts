@@ -48,8 +48,8 @@ export class PseudoService {
     let pseudo: Pseudo;
     const queryRunner: QueryRunner = this.queryRunnerFactory.getQueryRunner();
     try {
-      pseudo = this.pseudoRepository.create({ name: stringValue });
       await queryRunner.startTransaction();
+      pseudo = Pseudo.of(stringValue);
       const existingPseudo: Pseudo = await this.find(pseudo);
       if (existingPseudo) {
         const lastRegisteredPseudo: Pseudo =
