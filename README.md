@@ -30,6 +30,27 @@ The application expose a signe endpoint (POST /pseudo) in order to create pseudo
 - if the pseudo already exists, and all other pseudonymes are already taken, an error is returned
 - if the pseudo is free, the pseudo is created and returned
 
+### Algorithm
+Prerequisites:
+- Each pseudonyme is a combination of three upper case letters ranging from 'A' to 'Z' (ie: AAA, ABC, ABD, and so on...), thus allowing 26^3 possible pseudonymes (17576 possibilities).
+- As letters can be encoded by their UTF-8 charCode, and charCodes corresponding to alphabetical letters are incrementals (ie: 90='A', 91='B', 92='C'...), we can easily compute the 'previous' and 'next' combination from a pseudonyme: given 'CDE', the previous combination is 'CDD' and the 'next' combination would be 'CDF'.
+- The previous value of 'AAA' is 'ZZZ', the next value of 'ZZZ' is 'AAA'.
+- Pseudonymes are stored in a SQL database as {value, previous, previous_used, next, previous_used}, where value is the pseudonyme value itself, previous is the previous combination, next is the next combination, and previous_used/next_used are boolean used to indicate if the previous/next value is already stored in database.  
+
+Algorithm:
+When a user try to register a pseudonyme:
+- if pseudonyme.value is not found in database:  
+    - insert {value, previous, next}  
+- if pseudonyme.value is found in database:  
+    - if a *row* with 'previous_used' == false is found:  
+        - register a new row where pseudonyme.value = *row*.previous and next_used = true
+        - update *row*.previous_used == true
+    - else if a *row* with 'next_used' == false is found:  
+        - register a new row where pseudonyme.value = *row*.next and previous_used = true
+        - update *row*.next_used == true
+    - else: Return an Error message
+
+
 ## Project structure
 The project structure is a simple layered architecture:
 - src: contains the source code
@@ -41,6 +62,7 @@ The project structure is a simple layered architecture:
 - test: contain e2e tests
 - dist: contains compiled source code
 - root directory: contains all project configuration files
+
 ## Launch the application (Docker)
 
 ```bash
